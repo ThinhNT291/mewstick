@@ -17,6 +17,7 @@ public partial class App : System.Windows.Application
 
     public static bool IsExiting { get; private set; }
 
+    private SettingsService _settings = null!;
     private DataService _dataService = null!;
     private MainViewModel _mainViewModel = null!;
     private MainWindow _mainWindow = null!;
@@ -39,9 +40,12 @@ public partial class App : System.Windows.Application
             return;
         }
 
+        _settings = new SettingsService();
+        ThemeService.Apply(_settings.Current.IsDarkTheme);
+
         _dataService = new DataService();
         _mainViewModel = new MainViewModel(_dataService);
-        _mainWindow = new MainWindow(_mainViewModel);
+        _mainWindow = new MainWindow(_mainViewModel, _settings);
         _quickAddWindow = new QuickAddWindow(_mainViewModel);
 
         _mainWindow.Show();

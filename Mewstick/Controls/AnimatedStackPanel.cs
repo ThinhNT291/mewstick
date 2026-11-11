@@ -58,5 +58,13 @@ public class AnimatedStackPanel : StackPanel
 
             _previousTops[child] = top;
         }
+
+        // Dọn các phần tử đã bị gỡ khỏi panel (task bị xoá, hàng được dựng lại khi đổi giao diện).
+        if (_previousTops.Count > InternalChildren.Count)
+        {
+            var alive = new HashSet<UIElement>(InternalChildren.Cast<UIElement>());
+            foreach (var stale in _previousTops.Keys.Where(k => !alive.Contains(k)).ToList())
+                _previousTops.Remove(stale);
+        }
     }
 }

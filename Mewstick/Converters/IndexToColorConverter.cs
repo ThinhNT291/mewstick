@@ -13,14 +13,19 @@ public class IndexToColorConverter : IValueConverter
 {
     // Mỗi hàng lệch 18 độ hue; sau 20 hàng (20 * 18 = 360) thì màu lặp lại từ đầu.
     private const double HueStepDegrees = 18.0;
-    private const double Saturation = 0.55;
-    private const double Lightness = 0.85;
+    // Giao diện sáng: pastel nhạt; giao diện tối: cùng dải màu nhưng đậm và trầm hơn để chữ sáng dễ đọc.
+    private const double LightSaturation = 0.55;
+    private const double LightLightness = 0.85;
+    private const double DarkSaturation = 0.32;
+    private const double DarkLightness = 0.26;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         int index = value is int i ? i : 0;
         double hue = (index * HueStepDegrees) % 360.0;
-        return new System.Windows.Media.SolidColorBrush(HslToColor(hue, Saturation, Lightness));
+        bool dark = Mewstick.Services.ThemeService.IsDark;
+        return new System.Windows.Media.SolidColorBrush(
+            HslToColor(hue, dark ? DarkSaturation : LightSaturation, dark ? DarkLightness : LightLightness));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

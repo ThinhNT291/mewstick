@@ -1,10 +1,13 @@
 using System.ComponentModel;
+using System.Windows.Data;
+using System.Windows.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Mewstick.Models;
+using Mewstick.Services;
 using Mewstick.ViewModels;
 using Control = System.Windows.Controls.Control;
 using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
@@ -22,14 +25,98 @@ namespace Mewstick;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
+    private readonly SettingsService _settings;
+    private readonly DispatcherTimer _saveBoundsTimer;
 
-    public MainWindow(MainViewModel viewModel)
+    public MainWindow(MainViewModel viewModel, SettingsService settings)
     {
         InitializeComponent();
         _viewModel = viewModel;
+        _settings = settings;
         DataContext = _viewModel;
 
+        ApplySavedBounds();
+
+        PinToggle.IsChecked = _settings.Current.IsPinned;
+        Topmost = _settings.Current.IsPinned;
+
+        ThemeToggle.IsChecked = ThemeService.IsDark;
+        UpdateThemeToggleIcon();
+
+        // Nhớ vị trí/kích thước: đợi người dùng kéo/thả xong rồi mới ghi file
+        _saveBoundsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+        _saveBoundsTimer.Tick += (_, _) => SaveBounds();
+        SizeChanged += (_, _) => ScheduleSaveBounds();
+        LocationChanged += (_, _) => ScheduleSaveBounds();
+
         Closing += MainWindow_Closing;
+    }
+
+    /// <summary>Mở lại đúng chỗ/kích thước lần trước; nếu vị trí cũ nằm ngoài màn hình (rút màn hình phụ...) thì giữ mặc định giữa màn hình.</summary>
+    private void ApplySavedBounds()
+    {
+        var s = _settings.Current;
+        if (s.Left is not { } left || s.Top is not { } top || s.Width is not { } width || s.Height is not { } height)
+            return;
+
+        width = Math.Clamp(width, MinWidth, MaxWidth);
+        height = Math.Clamp(height, MinHeight, MaxHeight);
+
+        double screenLeft = SystemParameters.VirtualScreenLeft;
+        double screenTop = SystemParameters.VirtualScreenTop;
+        double screenRight = screenLeft + SystemParameters.VirtualScreenWidth;
+        double screenBottom = screenTop + SystemParameters.VirtualScreenHeight;
+
+        // Thanh tiêu đề phải còn đủ chỗ trong màn hình để kéo lại được
+        bool onScreen = left + width > screenLeft + 60 && left < screenRight - 60 &&
+                        top >= screenTop - 5 && top < screenBottom - 40;
+        if (!onScreen)
+            return;
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = left;
+        Top = top;
+        Width = width;
+        Height = height;
+    }
+
+    private void ScheduleSaveBounds()
+    {
+        if (!IsLoaded) return;
+        _saveBoundsTimer.Stop();
+        _saveBoundsTimer.Start();
+    }
+
+    private void SaveBounds()
+    {
+        _saveBoundsTimer.Stop();
+
+        var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
+        if (bounds.IsEmpty || double.IsNaN(bounds.Left) || double.IsNaN(bounds.Top)) return;
+
+        var s = _settings.Current;
+        s.Left = bounds.Left;
+        s.Top = bounds.Top;
+        s.Width = bounds.Width;
+        s.Height = bounds.Height;
+        _settings.Save();
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        bool dark = ThemeToggle.IsChecked == true;
+        ThemeService.Apply(dark);
+        _settings.Current.IsDarkTheme = dark;
+        _settings.Save();
+        UpdateThemeToggleIcon();
+
+        // Màu từng hàng do converter tính nên cần dựng lại danh sách để áp màu mới
+        CollectionViewSource.GetDefaultView(_viewModel.Tasks).Refresh();
+    }
+
+    private void UpdateThemeToggleIcon()
+    {
+        ThemeToggleIcon.Text = ThemeService.IsDark ? "☀" : "🌙";
     }
 
     /// <summary>
@@ -45,6 +132,7 @@ public partial class MainWindow : Window
         }
         else
         {
+            SaveBounds();
             _viewModel.Persist();
         }
     }
@@ -85,6 +173,8 @@ public partial class MainWindow : Window
     private void PinToggle_Click(object sender, RoutedEventArgs e)
     {
         Topmost = PinToggle.IsChecked == true;
+        _settings.Current.IsPinned = Topmost;
+        _settings.Save();
     }
 
     private void HideButton_Click(object sender, RoutedEventArgs e)
@@ -130,6 +220,9 @@ public partial class MainWindow : Window
                 "create" => !task.IsGroupHeader,
                 "remove" => !task.IsGroupHeader && task.IsGrouped,
                 "collapse" or "rename" or "ungroup" or "delete" or "sep" => task.IsGroupHeader,
+                "collapseAll" => _viewModel.HasExpandedGroup,
+                "expandAll" => _viewModel.HasCollapsedGroup,
+                "sepAll" => _viewModel.HasGroups,
                 _ => true
             };
             item.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
@@ -158,6 +251,12 @@ public partial class MainWindow : Window
     {
         if (MenuTask(sender) is { } task) _viewModel.ToggleCollapseCommand.Execute(task);
     }
+
+    private void CollapseAll_Click(object sender, RoutedEventArgs e) =>
+        _viewModel.SetAllGroupsCollapsedCommand.Execute(true);
+
+    private void ExpandAll_Click(object sender, RoutedEventArgs e) =>
+        _viewModel.SetAllGroupsCollapsedCommand.Execute(false);
 
     /// <summary>Xoá group: hỏi xác nhận nếu group còn task (task được chuyển vào danh sách đã xoá).</summary>
     private void DeleteGroup_Click(object sender, RoutedEventArgs e)
