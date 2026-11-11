@@ -2,13 +2,9 @@
 ; Nếu thư mục publish của bạn khác, sửa dòng PublishDir bên dưới.
 
 #define MyAppName "Mewstick"
-<<<<<<< HEAD
 #define MyAppVersion "1.0.1"
-=======
-#define MyAppVersion "1.0.0"
-#define MyAppPublisher "ThinhNT291"
-#define MyAppURL "https://github.com/ThinhNT291/Mewstick"
->>>>>>> c22989518de3aa48bade5214cb83c8e6fbeab706
+#define MyAppPublisher "ThinhNT"
+#define MyAppURL "https://quanlysv.vercel.app"
 #define MyAppExe "Mewstick.exe"
 #define PublishDir "D:\Mewstick\Mewstick\bin\Release\net8.0-windows10.0.19041.0\win-x64"
 
