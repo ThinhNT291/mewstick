@@ -18,7 +18,7 @@
             <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.3"/>
         </Border.Effect>
         <StackPanel>
-            <TextBox x:Name="QuickAddTextBox" FontSize="15" Padding="8"
+            <TextBox x:Name="QuickAddTextBox" FontSize="14" Padding="8"
                      Background="White" Foreground="Black"
                      BorderThickness="1.5" BorderBrush="#8A8A85"
                      KeyDown="QuickAddTextBox_KeyDown"/>

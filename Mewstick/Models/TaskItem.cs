@@ -44,6 +44,25 @@ public partial class TaskItem : ObservableObject
     [JsonIgnore]
     public bool IsGrouped => GroupId.HasValue;
 
+    /// <summary>Group đang thu gọn: các task bên trong bị ẩn đi (chỉ còn dòng tiêu đề).</summary>
+    [ObservableProperty]
+    private bool isCollapsed;
+
+    /// <summary>Task đang bị ẩn vì group của nó thu gọn.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore]
+    private bool isHidden;
+
+    /// <summary>Group đã hoàn thành: có ít nhất 1 task và tất cả đều đã tick.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore]
+    private bool isGroupDone;
+
+    /// <summary>Tiến độ hiển thị trên tiêu đề group, ví dụ "2/5".</summary>
+    [ObservableProperty]
+    [property: JsonIgnore]
+    private string groupProgress = string.Empty;
+
     /// <summary>Đang có task được kéo qua dòng tiêu đề này (để tô sáng vùng thả).</summary>
     [ObservableProperty]
     [property: JsonIgnore]

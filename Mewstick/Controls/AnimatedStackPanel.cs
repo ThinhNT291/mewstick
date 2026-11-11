@@ -25,7 +25,11 @@ public class AnimatedStackPanel : StackPanel
     {
         foreach (UIElement child in InternalChildren)
         {
-            if (!child.IsVisible) continue;
+            if (!child.IsVisible)
+            {
+                _previousTops.Remove(child);
+                continue;
+            }
 
             if (child is not FrameworkElement fe) continue;
             double top = LayoutInformation.GetLayoutSlot(fe).Top;

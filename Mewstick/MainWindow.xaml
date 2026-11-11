@@ -28,7 +28,7 @@
         <Style x:Key="TaskTextStyle" TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Style.Triggers>
@@ -73,7 +73,7 @@
         <!-- Tab header kiểu gạch chân, giống ảnh tham khảo -->
         <Style TargetType="TabItem">
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -132,7 +132,7 @@
 
                         <Grid>
                             <TextBox Text="{Binding NewTaskText, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0" Padding="14,12" FontSize="14" BorderThickness="0,0,0,1"
+                                 Margin="0" Padding="14,12" FontSize="13" BorderThickness="0,0,0,1"
                                  BorderBrush="#DADAD5" Background="#F5F5F3"
                                  Foreground="{StaticResource TextPrimaryBrush}" CaretBrush="#333333"
                                  VerticalContentAlignment="Center">
@@ -143,7 +143,7 @@
                             </TextBox>
                             <TextBlock Text="Gõ việc &amp; nhấn Enter (Có thể kèm mã -gq, -13:30 2/11)"
                                    Margin="14,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
-                                   FontStyle="Italic" Foreground="#9A9A95" FontSize="13">
+                                   FontStyle="Italic" Foreground="#9A9A95" FontSize="12">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -274,22 +274,36 @@
                                 <DataTemplate>
                                     <Grid Background="Transparent" AllowDrop="True"
                                           PreviewMouseLeftButtonDown="TaskRow_PreviewMouseLeftButtonDown"
+                                          PreviewMouseLeftButtonUp="TaskRow_PreviewMouseLeftButtonUp"
                                           PreviewMouseMove="TaskRow_PreviewMouseMove"
                                           DragOver="TaskRow_DragOver"
                                           DragLeave="TaskRow_DragLeave"
                                           Drop="TaskRow_Drop">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsHidden}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
                                         <Grid.ContextMenu>
                                             <ContextMenu Opened="TaskContextMenu_Opened">
                                                 <MenuItem Tag="create" Header="Create group" Click="CreateGroup_Click"/>
                                                 <MenuItem Tag="remove" Header="Remove from group" Click="RemoveFromGroup_Click"/>
+                                                <MenuItem Tag="collapse" Header="Collapse" Click="ToggleCollapse_Click"/>
                                                 <MenuItem Tag="rename" Header="Rename group" Click="RenameGroup_Click"/>
-                                                <MenuItem Tag="ungroup" Header="Ungroup" Click="Ungroup_Click"/>
+                                                <MenuItem Tag="ungroup" Header="Ungroup (keep tasks)" Click="Ungroup_Click"/>
+                                                <Separator Tag="sep"/>
+                                                <MenuItem Tag="delete" Header="Delete group" Click="DeleteGroup_Click"/>
                                             </ContextMenu>
                                         </Grid.ContextMenu>
 
                                         <!-- Dòng tiêu đề group: nền nổi bật, chữ đậm -->
                                         <Border x:Name="GroupHeaderBorder" Margin="0,6,0,0" Padding="12,9"
-                                                BorderThickness="2">
+                                                BorderThickness="2" Cursor="Hand"
+                                                ToolTip="Bấm để thu gọn/mở rộng — kéo task thả vào đây để đưa vào group — kéo tiêu đề để di chuyển cả group">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -299,6 +313,9 @@
                                                         <DataTrigger Binding="{Binding IsGroupHeader}" Value="True">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsGroupDone}" Value="True">
+                                                            <Setter Property="Opacity" Value="0.6"/>
+                                                        </DataTrigger>
                                                         <DataTrigger Binding="{Binding IsDropTarget}" Value="True">
                                                             <Setter Property="Background" Value="#3350D8"/>
                                                             <Setter Property="BorderBrush" Value="#FFC107"/>
@@ -307,9 +324,32 @@
                                                 </Style>
                                             </Border.Style>
                                             <Grid>
-                                                <TextBlock Text="{Binding Content}" Foreground="White" FontSize="14" FontWeight="ExtraBold"
-                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                                           ToolTip="Kéo task thả vào đây để đưa vào group — kéo tiêu đề để di chuyển cả group">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Mũi tên thu gọn/mở rộng: xoay ngang khi group đang thu gọn -->
+                                                <Path Grid.Column="0" Data="M0,0 L8,0 L4,6 Z" Fill="White" Margin="0,0,8,0"
+                                                      VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                                                                    <Setter Property="RenderTransform">
+                                                                        <Setter.Value>
+                                                                            <RotateTransform Angle="-90"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+
+                                                <TextBlock Grid.Column="1" Text="{Binding Content}" Foreground="White" FontSize="13" FontWeight="ExtraBold"
+                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Style.Triggers>
@@ -319,18 +359,12 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </TextBlock.Style>
-                                                    <TextBlock.InputBindings>
-                                                        <MouseBinding MouseAction="LeftDoubleClick"
-                                                                      Command="{Binding DataContext.BeginEditCommand,
-                                                                                RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                      CommandParameter="{Binding}"/>
-                                                    </TextBlock.InputBindings>
                                                 </TextBlock>
 
-                                                <TextBox Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
+                                                <TextBox Grid.Column="1" Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
                                                          VerticalContentAlignment="Center" BorderThickness="0"
                                                          Background="#30FFFFFF" Foreground="White" CaretBrush="White"
-                                                         FontSize="14" FontWeight="ExtraBold"
+                                                         FontSize="13" FontWeight="ExtraBold"
                                                          IsVisibleChanged="EditTextBox_IsVisibleChanged"
                                                          LostFocus="EditTextBox_LostFocus">
                                                     <TextBox.Style>
@@ -354,6 +388,21 @@
                                                                     CommandParameter="{Binding}"/>
                                                     </TextBox.InputBindings>
                                                 </TextBox>
+
+                                                <!-- Tiến độ: số task đã xong / tổng -->
+                                                <Border Grid.Column="2" Margin="8,0,0,0" Padding="7,1" CornerRadius="9"
+                                                        Background="#30FFFFFF" VerticalAlignment="Center">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding GroupProgress}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{Binding GroupProgress}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                                </Border>
                                             </Grid>
                                         </Border>
 
@@ -443,7 +492,7 @@
                                                  VerticalContentAlignment="Center" BorderThickness="0"
                                                  Background="#20000000" Foreground="{StaticResource TextPrimaryBrush}"
                                                  CaretBrush="#333333"
-                                                 FontSize="14" FontWeight="SemiBold"
+                                                 FontSize="13" FontWeight="SemiBold"
                                                  IsVisibleChanged="EditTextBox_IsVisibleChanged"
                                                  LostFocus="EditTextBox_LostFocus">
                                                 <TextBox.Style>

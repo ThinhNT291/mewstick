@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Mewstick.Models;
 using Mewstick.ViewModels;
+using Control = System.Windows.Controls.Control;
 using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using DataObject = System.Windows.DataObject;
@@ -122,16 +123,19 @@ public partial class MainWindow : Window
         if (sender is not ContextMenu menu || MenuTask(menu) is not { } task)
             return;
 
-        foreach (MenuItem item in menu.Items.OfType<MenuItem>())
+        foreach (Control item in menu.Items.OfType<Control>())
         {
             bool visible = item.Tag as string switch
             {
                 "create" => !task.IsGroupHeader,
                 "remove" => !task.IsGroupHeader && task.IsGrouped,
-                "rename" or "ungroup" => task.IsGroupHeader,
+                "collapse" or "rename" or "ungroup" or "delete" or "sep" => task.IsGroupHeader,
                 _ => true
             };
             item.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+
+            if (item is MenuItem { Tag: "collapse" } collapseItem)
+                collapseItem.Header = task.IsCollapsed ? "Expand" : "Collapse";
         }
     }
 
@@ -148,6 +152,32 @@ public partial class MainWindow : Window
     private void RenameGroup_Click(object sender, RoutedEventArgs e)
     {
         if (MenuTask(sender) is { } task) _viewModel.RenameGroupCommand.Execute(task);
+    }
+
+    private void ToggleCollapse_Click(object sender, RoutedEventArgs e)
+    {
+        if (MenuTask(sender) is { } task) _viewModel.ToggleCollapseCommand.Execute(task);
+    }
+
+    /// <summary>Xoá group: hỏi xác nhận nếu group còn task (task được chuyển vào danh sách đã xoá).</summary>
+    private void DeleteGroup_Click(object sender, RoutedEventArgs e)
+    {
+        if (MenuTask(sender) is not { } header) return;
+
+        int count = _viewModel.CountGroupMembers(header);
+        if (count > 0)
+        {
+            var answer = System.Windows.MessageBox.Show(
+                this,
+                $"Xoá group \"{header.Content}\" và {count} task bên trong?\n(Các task được chuyển vào danh sách đã xoá ở tab Thống kê.)",
+                "Delete group",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (answer != MessageBoxResult.Yes) return;
+        }
+
+        _viewModel.DeleteGroupCommand.Execute(header);
     }
 
     private void Ungroup_Click(object sender, RoutedEventArgs e)
@@ -171,6 +201,16 @@ public partial class MainWindow : Window
 
         _dragCandidate = task;
         _dragStartPoint = e.GetPosition(this);
+    }
+
+    /// <summary>Bấm (không kéo) vào tiêu đề group thì thu gọn / mở rộng group.</summary>
+    private void TaskRow_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        var candidate = _dragCandidate;
+        _dragCandidate = null;
+
+        if (candidate is { IsGroupHeader: true } header && ReferenceEquals(header, TaskOf(sender)))
+            _viewModel.ToggleCollapseCommand.Execute(header);
     }
 
     private static DependencyObject? GetParent(DependencyObject d) =>
