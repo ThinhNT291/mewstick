@@ -3,6 +3,8 @@
 
 #define MyAppName "Mewstick"
 #define MyAppVersion "1.0.0"
+#define MyAppPublisher "ThinhNT291"
+#define MyAppURL "https://github.com/ThinhNT291/Mewstick"
 #define MyAppExe "Mewstick.exe"
 #define PublishDir "D:\Mewstick\Mewstick\bin\Release\net8.0-windows10.0.19041.0\win-x64"
 
@@ -10,6 +12,16 @@
 AppId={{B7A3C1D2-5E4F-4A6B-9C8D-1F2E3A4B5C6D}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}/issues
+AppUpdatesURL={#MyAppURL}/releases
+AppCopyright=Copyright (C) 2026 {#MyAppPublisher}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoCopyright=Copyright (C) 2026 {#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Setup
+VersionInfoProductName={#MyAppName}
+VersionInfoVersion={#MyAppVersion}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
