@@ -33,6 +33,15 @@ Mewstick/
 Mặc định: **Ctrl+Alt+N** mở popup thêm nhanh gần vị trí con trỏ chuột (giống Todoist/TickTick).
 Nút X trên cửa sổ chính chỉ ẩn app (vẫn chạy nền qua tray) — thoát thật sự qua menu tray → "Thoát".
 
+## Group
+
+- Chuột phải vào 1 task → **Create group**: tạo group mới (hiện ở đầu danh sách, tiêu đề màu nổi bật, chữ đậm) và đưa task đó vào; gõ tên rồi Enter. Double-click vào tiêu đề để đổi tên.
+- Kéo một task thả lên tiêu đề (hoặc lên 1 task đang ở trong group) để đưa vào group; thả lên task ngoài group để đưa ra khỏi group.
+- Kéo tiêu đề group để di chuyển cả nhóm; kéo qua group khác thì group đó trượt ra nhường chỗ.
+- Task tick hoàn thành bị gạch nhưng vẫn ở trong group, tự dồn xuống cuối group.
+- Chuột phải vào task trong group → **Remove from group**; chuột phải vào tiêu đề → **Rename group** / **Ungroup**.
+- Group được lưu trong `tasks.json` (`IsGroupHeader`, `GroupId`); file cũ vẫn đọc được bình thường.
+
 ## Roadmap
 
 - [x] **Giai đoạn 1-7 (MVP, đã dựng ở đây):** khung dự án, lưu JSON, task list CRUD,

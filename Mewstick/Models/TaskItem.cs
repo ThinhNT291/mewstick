@@ -32,6 +32,23 @@ public partial class TaskItem : ObservableObject
     [ObservableProperty]
     private DateTime? deletedAt;
 
+    /// <summary>True: đây là dòng tiêu đề của một group (Content = tên group), không phải task thường.</summary>
+    [ObservableProperty]
+    private bool isGroupHeader;
+
+    /// <summary>Id của dòng tiêu đề group mà task này thuộc về; null nếu task đứng ngoài group.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGrouped))]
+    private Guid? groupId;
+
+    [JsonIgnore]
+    public bool IsGrouped => GroupId.HasValue;
+
+    /// <summary>Đang có task được kéo qua dòng tiêu đề này (để tô sáng vùng thả).</summary>
+    [ObservableProperty]
+    [property: JsonIgnore]
+    private bool isDropTarget;
+
     public string Color { get; set; } = "#FFF59D";
 
     public int Order { get; set; }

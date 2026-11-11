@@ -312,22 +312,168 @@ public partial class MainViewModel : ObservableObject
         Persist();
     }
 
-    /// <summary>Chưa xong (theo mức ưu tiên) luôn ở trên; đã xong dồn xuống dưới,
-    /// trong nhóm đã xong thì tick gần nhất nằm trên, tick lâu nhất nằm dưới cùng.</summary>
+    /// <summary>
+    /// Sắp xếp lại toàn bộ danh sách hiển thị:
+    ///  1) các group theo thứ tự người dùng kéo (Order của dòng tiêu đề), mỗi group là tiêu đề + các task của nó;
+    ///  2) các task đứng ngoài group ở phía dưới.
+    /// Trong mỗi vùng: chưa xong (theo mức ưu tiên) ở trên; đã xong dồn xuống dưới,
+    /// tick gần nhất nằm trên, tick lâu nhất nằm dưới cùng. Task đã xong vẫn nằm trong group của nó.
+    /// </summary>
     private void ResortTasks()
     {
-        var sorted = Tasks
-            .OrderBy(t => t.IsDone)
-            .ThenBy(t => t.IsDone ? 0 : RankOf(t))
-            .ThenByDescending(t => t.IsDone ? (t.CompletedAt ?? DateTime.MinValue) : DateTime.MinValue)
-            .ToList();
+        var sorted = BuildDisplayOrder();
 
         for (int i = 0; i < sorted.Count; i++)
         {
             int currentIndex = Tasks.IndexOf(sorted[i]);
             if (currentIndex != i)
                 Tasks.Move(currentIndex, i);
+            sorted[i].Order = i;
         }
+    }
+
+    private List<TaskItem> BuildDisplayOrder()
+    {
+        var headers = Tasks.Where(t => t.IsGroupHeader).OrderBy(t => t.Order).ToList();
+        var headerIds = headers.Select(h => h.Id).ToHashSet();
+
+        // Task trỏ tới group không còn tồn tại -> trả về ngoài group.
+        foreach (var orphan in Tasks.Where(t => !t.IsGroupHeader && t.GroupId.HasValue && !headerIds.Contains(t.GroupId.Value)))
+            orphan.GroupId = null;
+
+        var result = new List<TaskItem>(Tasks.Count);
+        foreach (var header in headers)
+        {
+            result.Add(header);
+            result.AddRange(SortTaskGroup(Tasks.Where(t => !t.IsGroupHeader && t.GroupId == header.Id)));
+        }
+
+        result.AddRange(SortTaskGroup(Tasks.Where(t => !t.IsGroupHeader && !t.GroupId.HasValue)));
+        return result;
+    }
+
+    private static IEnumerable<TaskItem> SortTaskGroup(IEnumerable<TaskItem> items) => items
+        .OrderBy(t => t.IsDone)
+        .ThenBy(t => t.IsDone ? 0 : RankOf(t))
+        .ThenByDescending(t => t.IsDone ? (t.CompletedAt ?? DateTime.MinValue) : DateTime.MinValue)
+        .ToList();
+
+    // ------------------------- Group -------------------------
+
+    /// <summary>Tạo group mới (hiện ở đầu danh sách), đưa task được chọn vào và cho sửa tên ngay.</summary>
+    [RelayCommand]
+    private void CreateGroup(TaskItem task)
+    {
+        if (task.IsGroupHeader) return;
+
+        var header = new TaskItem
+        {
+            Content = "New group",
+            IsGroupHeader = true,
+            Order = -1
+        };
+
+        Tasks.Add(header);
+        task.GroupId = header.Id;
+
+        ResortTasks();
+        Persist();
+
+        header.EditText = header.Content;
+        header.IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void RemoveFromGroup(TaskItem task)
+    {
+        if (task.IsGroupHeader || !task.GroupId.HasValue) return;
+
+        task.GroupId = null;
+        ResortTasks();
+        Persist();
+    }
+
+    /// <summary>Gỡ group: tiêu đề bị xoá, các task bên trong trở thành task thường.</summary>
+    [RelayCommand]
+    private void Ungroup(TaskItem header)
+    {
+        if (!header.IsGroupHeader) return;
+
+        foreach (var member in Tasks.Where(t => t.GroupId == header.Id).ToList())
+            member.GroupId = null;
+
+        Tasks.Remove(header);
+        ResortTasks();
+        Persist();
+    }
+
+    [RelayCommand]
+    private void RenameGroup(TaskItem header)
+    {
+        if (!header.IsGroupHeader) return;
+        BeginEdit(header);
+    }
+
+    /// <summary>Thả task lên một dòng: vào group của dòng đó (tiêu đề hoặc thành viên); thả lên task ngoài group thì task rời group.</summary>
+    public void DropTaskOn(TaskItem dragged, TaskItem target)
+    {
+        if (dragged.IsGroupHeader || ReferenceEquals(dragged, target)) return;
+
+        Guid? newGroup = target.IsGroupHeader ? target.Id : target.GroupId;
+        if (dragged.GroupId == newGroup) return;
+
+        dragged.GroupId = newGroup;
+        ResortTasks();
+        Persist();
+    }
+
+    /// <summary>Group đang chứa/được trỏ tới bởi dòng này (null nếu dòng không thuộc group nào).</summary>
+    public TaskItem? HeaderOf(TaskItem row) =>
+        row.IsGroupHeader ? row
+        : row.GroupId.HasValue ? Tasks.FirstOrDefault(t => t.IsGroupHeader && t.Id == row.GroupId.Value)
+        : null;
+
+    /// <summary>
+    /// Gọi liên tục khi kéo dòng tiêu đề <paramref name="group"/> qua dòng tiêu đề <paramref name="target"/>:
+    /// hoán đổi vị trí khi con trỏ đã vượt qua nửa dòng của group kia, group kia sẽ trượt ra nhường chỗ.
+    /// </summary>
+    public void DragGroupOver(TaskItem group, TaskItem target, bool pointerInLowerHalf)
+    {
+        if (!group.IsGroupHeader || !target.IsGroupHeader || ReferenceEquals(group, target)) return;
+
+        var headers = Tasks.Where(t => t.IsGroupHeader).OrderBy(t => t.Order).ToList();
+        int from = headers.IndexOf(group);
+        int to = headers.IndexOf(target);
+        if (from < 0 || to < 0) return;
+
+        // Đi xuống: chỉ hoán đổi khi qua nửa dưới; đi lên: chỉ khi qua nửa trên (tránh nhấp nháy qua lại).
+        bool movesDown = from < to;
+        if (movesDown != pointerInLowerHalf) return;
+
+        headers.RemoveAt(from);
+        headers.Insert(to, group);
+        for (int i = 0; i < headers.Count; i++)
+            headers[i].Order = i;
+
+        ResortTasks();
+    }
+
+    /// <summary>Bôi sáng đúng 1 group đang được trỏ tới khi kéo task (null = tắt hết).</summary>
+    public void HighlightDropTarget(TaskItem? header)
+    {
+        foreach (var t in Tasks)
+        {
+            bool on = header != null && ReferenceEquals(t, header);
+            if (t.IsDropTarget != on) t.IsDropTarget = on;
+        }
+    }
+
+    /// <summary>Gọi khi kết thúc thao tác kéo thả để lưu vị trí mới.</summary>
+    public void CompleteDrag()
+    {
+        HighlightDropTarget(null);
+        ResortTasks();
+        Persist();
     }
 
     private static int RankOf(TaskItem task) =>
@@ -361,7 +507,7 @@ public partial class MainViewModel : ObservableObject
         var raw = buckets
             .Select(b =>
             {
-                var inRange = Tasks.Where(t => t.CreatedAt >= b.start && t.CreatedAt < b.end).ToList();
+                var inRange = Tasks.Where(t => !t.IsGroupHeader && t.CreatedAt >= b.start && t.CreatedAt < b.end).ToList();
                 return (b.label, unfinished: inRange.Count(t => !t.IsDone), finished: inRange.Count(t => t.IsDone));
             })
             .ToList();

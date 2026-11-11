@@ -127,7 +127,7 @@
         <TabControl x:Name="MainTabControl" Grid.Row="1" BorderThickness="0" Background="Transparent"
                     TabStripPlacement="Bottom">
             <TabItem Header="Công việc">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer x:Name="TaskScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0">
 
                         <Grid>
@@ -272,13 +272,108 @@
                             </ItemsControl.ItemContainerStyle>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border x:Name="RowBorder" CornerRadius="0" Margin="0" Padding="12,10"
+                                    <Grid Background="Transparent" AllowDrop="True"
+                                          PreviewMouseLeftButtonDown="TaskRow_PreviewMouseLeftButtonDown"
+                                          PreviewMouseMove="TaskRow_PreviewMouseMove"
+                                          DragOver="TaskRow_DragOver"
+                                          DragLeave="TaskRow_DragLeave"
+                                          Drop="TaskRow_Drop">
+                                        <Grid.ContextMenu>
+                                            <ContextMenu Opened="TaskContextMenu_Opened">
+                                                <MenuItem Tag="create" Header="Create group" Click="CreateGroup_Click"/>
+                                                <MenuItem Tag="remove" Header="Remove from group" Click="RemoveFromGroup_Click"/>
+                                                <MenuItem Tag="rename" Header="Rename group" Click="RenameGroup_Click"/>
+                                                <MenuItem Tag="ungroup" Header="Ungroup" Click="Ungroup_Click"/>
+                                            </ContextMenu>
+                                        </Grid.ContextMenu>
+
+                                        <!-- Dòng tiêu đề group: nền nổi bật, chữ đậm -->
+                                        <Border x:Name="GroupHeaderBorder" Margin="0,6,0,0" Padding="12,9"
+                                                BorderThickness="2">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                    <Setter Property="Background" Value="#4F6BED"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsGroupHeader}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsDropTarget}" Value="True">
+                                                            <Setter Property="Background" Value="#3350D8"/>
+                                                            <Setter Property="BorderBrush" Value="#FFC107"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Grid>
+                                                <TextBlock Text="{Binding Content}" Foreground="White" FontSize="14" FontWeight="ExtraBold"
+                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="Kéo task thả vào đây để đưa vào group — kéo tiêu đề để di chuyển cả group">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <TextBlock.InputBindings>
+                                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                                      Command="{Binding DataContext.BeginEditCommand,
+                                                                                RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                    </TextBlock.InputBindings>
+                                                </TextBlock>
+
+                                                <TextBox Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
+                                                         VerticalContentAlignment="Center" BorderThickness="0"
+                                                         Background="#30FFFFFF" Foreground="White" CaretBrush="White"
+                                                         FontSize="14" FontWeight="ExtraBold"
+                                                         IsVisibleChanged="EditTextBox_IsVisibleChanged"
+                                                         LostFocus="EditTextBox_LostFocus">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Key="Return"
+                                                                    Command="{Binding DataContext.CommitEditCommand,
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                        <KeyBinding Key="Escape"
+                                                                    Command="{Binding DataContext.CancelEditCommand,
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                            </Grid>
+                                        </Border>
+
+                                    <Border x:Name="RowBorder" CornerRadius="0"
                                         Background="{Binding RelativeSource={RelativeSource AncestorType=ContentPresenter},
                                                      Path=Tag, Converter={StaticResource IndexToColorConverter}}">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Opacity" Value="1"/>
+                                                <Setter Property="Padding" Value="12,10"/>
+                                                <Setter Property="BorderBrush" Value="#4F6BED"/>
                                                 <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsGroupHeader}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <!-- Task thuộc group: thụt vào + thanh màu bên trái -->
+                                                    <DataTrigger Binding="{Binding IsGrouped}" Value="True">
+                                                        <Setter Property="BorderThickness" Value="5,0,0,0"/>
+                                                        <Setter Property="Padding" Value="10,10,12,10"/>
+                                                    </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsDone}" Value="True">
                                                         <Setter Property="Opacity" Value="0.5"/>
                                                     </DataTrigger>
@@ -290,8 +385,8 @@
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <DoubleAnimation Storyboard.TargetName="TrashWrapper"
-                                                                     Storyboard.TargetProperty="Width"
-                                                                     To="48" Duration="0:0:0.3">
+                                                                     Storyboard.TargetProperty="Height"
+                                                                     To="40" Duration="0:0:0.3">
                                                             <DoubleAnimation.EasingFunction>
                                                                 <CubicEase EasingMode="EaseOut"/>
                                                             </DoubleAnimation.EasingFunction>
@@ -303,7 +398,7 @@
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <DoubleAnimation Storyboard.TargetName="TrashWrapper"
-                                                                     Storyboard.TargetProperty="Width"
+                                                                     Storyboard.TargetProperty="Height"
                                                                      To="0" Duration="0:0:0.3">
                                                             <DoubleAnimation.EasingFunction>
                                                                 <CubicEase EasingMode="EaseIn"/>
@@ -416,7 +511,7 @@
                                                     </Canvas>
                                                 </Viewbox>
 
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                                 <Button x:Name="BellButton" Margin="0"
                                                     ToolTip="{Binding DueAt, StringFormat='Nhắc lúc {0:HH:mm dd/MM} — bấm để sửa'}"
                                                     Command="{Binding DataContext.OpenReminderPopupCommand,
@@ -509,10 +604,10 @@
                                                     </Border>
                                                 </Popup>
 
-                                                <!-- Nhóm hành động: tia sét + thùng rác, mặc định rộng 0, hover mới trượt mở ra -->
-                                                <Border x:Name="TrashWrapper" Width="0" ClipToBounds="True">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <Button x:Name="LightningButton" Margin="4,0,0,0" Style="{StaticResource FlatIconButtonStyle}"
+                                                <!-- Nhóm hành động: tia sét + thùng rác xếp dọc dưới chuông, mặc định cao 0, hover mới trượt mở ra (không đổi bề rộng cột nên chữ không bị ép) -->
+                                                <Border x:Name="TrashWrapper" Height="0" ClipToBounds="True">
+                                                    <StackPanel Orientation="Vertical">
+                                                        <Button x:Name="LightningButton" Margin="0,2,0,0" Style="{StaticResource FlatIconButtonStyle}"
                                                             ToolTip="Sửa mức ưu tiên"
                                                             Command="{Binding DataContext.OpenPriorityPopupCommand,
                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
@@ -587,7 +682,7 @@
                                                             </Border>
                                                         </Popup>
 
-                                                        <Button Margin="4,0,0,0" Style="{StaticResource FlatIconButtonStyle}"
+                                                        <Button Margin="0,2,0,0" Style="{StaticResource FlatIconButtonStyle}"
                                                             Command="{Binding DataContext.DeleteTaskCommand,
                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}">
@@ -627,6 +722,7 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
