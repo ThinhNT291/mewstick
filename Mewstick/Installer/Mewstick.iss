@@ -2,7 +2,7 @@
 ; Nếu thư mục publish của bạn khác, sửa dòng PublishDir bên dưới.
 
 #define MyAppName "Mewstick"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppExe "Mewstick.exe"
 #define PublishDir "D:\Mewstick\Mewstick\bin\Release\net8.0-windows10.0.19041.0\win-x64"
 
