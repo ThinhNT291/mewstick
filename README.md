@@ -43,6 +43,15 @@ Nút X trên cửa sổ chính chỉ ẩn app (vẫn chạy nền qua tray) — 
 - Chuột phải vào tiêu đề: **Collapse/Expand**, **Rename group**, **Ungroup (keep tasks)**, **Delete group** (xoá group và chuyển các task trong đó vào danh sách đã xoá, có hỏi xác nhận). Chuột phải vào task trong group: **Remove from group**.
 - Group được lưu trong `tasks.json` (`IsGroupHeader`, `GroupId`, `IsCollapsed`); file cũ vẫn đọc được bình thường.
 
+## Khôi phục, giao diện tối, nhớ cửa sổ
+
+- **Khôi phục task đã xoá:** tab Thống kê → mở *Deleted Task* → nút mũi tên xanh để đưa task về danh sách chính
+  (về lại group cũ nếu group còn; group đang thu gọn sẽ tự mở ra). Nút thùng rác đỏ vẫn là xoá vĩnh viễn.
+- **Thu gọn / mở rộng tất cả group:** chuột phải → *Collapse all groups* / *Expand all groups*.
+- **Giao diện sáng / tối:** nút ☀/🌙 trên thanh tiêu đề; lựa chọn được nhớ cho lần sau.
+- **Nhớ cửa sổ:** vị trí, kích thước và trạng thái ghim được lưu tại `%AppData%\Mewstick\settings.json`;
+  nếu vị trí cũ nằm ngoài màn hình (rút màn hình phụ) thì mở lại giữa màn hình.
+
 ## Roadmap
 
 - [x] **Giai đoạn 1-7 (MVP, đã dựng ở đây):** khung dự án, lưu JSON, task list CRUD,

@@ -13,7 +13,7 @@
         WindowStyle="None"
         ResizeMode="CanResize"
         FontFamily="pack://application:,,,/Resources/Fonts/#Nunito"
-        Background="#FAFAF9">
+        Background="{DynamicResource WindowBackgroundBrush}">
 
     <Window.Resources>
         <conv:IndexToColorConverter x:Key="IndexToColorConverter"/>
@@ -22,19 +22,16 @@
         <conv:QuadrantToColorConverter x:Key="QuadrantToColorConverter"/>
         <conv:CompactWidthConverter x:Key="CompactWidthConverter"/>
 
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#2A2A2A"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#9A9A9A"/>
-
         <Style x:Key="TaskTextStyle" TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsDone}" Value="True">
                     <Setter Property="TextDecorations" Value="Strikethrough"/>
-                    <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -53,7 +50,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Border x:Name="Box" Width="18" Height="18" CornerRadius="5"
-                                Background="White" BorderThickness="1.5" BorderBrush="#CCCCCC">
+                                Background="{DynamicResource PillBackgroundBrush}" BorderThickness="1.5" BorderBrush="{DynamicResource PopupBorderBrush}">
                             <Path x:Name="CheckMark" Data="M3,9 L7,13 L15,4" Stroke="White" StrokeThickness="2"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                   Stretch="Uniform" Margin="3" Visibility="Collapsed"/>
@@ -74,7 +71,7 @@
         <Style TargetType="TabItem">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
@@ -107,18 +104,22 @@
         </Grid.RowDefinitions>
 
         <!-- Title bar tự vẽ: kéo để di chuyển, có nút Ghim + nút Ẩn -->
-        <Border Grid.Row="0" Height="30" Background="#F0F0EE" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+        <Border Grid.Row="0" Height="30" Background="{DynamicResource TitleBarBrush}" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid>
-                <TextBlock Text="Mewstick" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"
+                <TextBlock Text="Mewstick" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center" Margin="10,0,0,0"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <ToggleButton x:Name="ThemeToggle" Width="30" Height="30" Background="Transparent"
+                                  BorderThickness="0" Click="ThemeToggle_Click" ToolTip="Chuyển giao diện sáng / tối">
+                        <TextBlock x:Name="ThemeToggleIcon" Text="🌙" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </ToggleButton>
                     <ToggleButton x:Name="PinToggle" Width="30" Height="30" Background="Transparent"
                                   BorderThickness="0" Click="PinToggle_Click" ToolTip="Ghim luôn trên cùng">
                         <TextBlock Text="📌" FontSize="12"/>
                     </ToggleButton>
                     <Button Width="30" Height="30" Background="Transparent" BorderThickness="0"
                             Click="HideButton_Click" ToolTip="Ẩn xuống khay hệ thống">
-                        <TextBlock Text="✕" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="✕" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -133,8 +134,8 @@
                         <Grid>
                             <TextBox Text="{Binding NewTaskText, UpdateSourceTrigger=PropertyChanged}"
                                  Margin="0" Padding="14,12" FontSize="13" BorderThickness="0,0,0,1"
-                                 BorderBrush="#DADAD5" Background="#F5F5F3"
-                                 Foreground="{StaticResource TextPrimaryBrush}" CaretBrush="#333333"
+                                 BorderBrush="{DynamicResource InputBorderBrush}" Background="{DynamicResource InputBackgroundBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" CaretBrush="{DynamicResource TextPrimaryBrush}"
                                  VerticalContentAlignment="Center">
                                 <TextBox.InputBindings>
                                     <KeyBinding Key="Return" Command="{Binding AddTaskCommand}"/>
@@ -143,7 +144,7 @@
                             </TextBox>
                             <TextBlock Text="Gõ việc &amp; nhấn Enter (Có thể kèm mã -gq, -13:30 2/11)"
                                    Margin="14,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
-                                   FontStyle="Italic" Foreground="#9A9A95" FontSize="12">
+                                   FontStyle="Italic" Foreground="{DynamicResource PlaceholderBrush}" FontSize="12">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -157,7 +158,7 @@
                             </TextBlock>
                         </Grid>
 
-                        <Border Padding="12" Background="#F5F5F0" BorderThickness="0,0,0,1" BorderBrush="#DADAD5">
+                        <Border Padding="12" Background="{DynamicResource HelpPanelBrush}" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource InputBorderBrush}">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -170,7 +171,7 @@
                             </Border.Style>
                             <StackPanel>
                                 <TextBlock Text="Mã ưu tiên (Esc để đóng)" FontSize="11" FontWeight="Bold"
-                                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2" Rows="2" Margin="0,0,0,10">
                                     <Border Margin="2" Padding="6" Background="#D32F2F" CornerRadius="4">
                                         <TextBlock Text="-gq   Gấp &amp; Quan trọng" Foreground="White" FontSize="11"/>
@@ -186,19 +187,19 @@
                                     </Border>
                                 </UniformGrid>
                                 <TextBlock Text="Ngày giờ" FontSize="11" FontWeight="Bold"
-                                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3">
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,3">
                                 <Run Text="-hh:mm" FontWeight="Bold"/><Run Text="   đặt giờ, ngày mặc định là hôm nay" FontStyle="Italic"/>
                                 </TextBlock>
-                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8">
+                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8">
                                 <Run Text="-dd/mm" FontWeight="Bold"/><Run Text="   đặt ngày, giờ mặc định là 06:00" FontStyle="Italic"/>
                                 </TextBlock>
-                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextMutedBrush}">
-                                <Run Text="Ví dụ: "/><Run Text="Họp nhóm -gq -14:30 -25/12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}">
+                                <Run Text="Ví dụ: "/><Run Text="Họp nhóm -gq -14:30 -25/12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </TextBlock>
                             </StackPanel>
                         </Border>
-                        <Border Padding="12" Background="#F0F0EC" BorderThickness="0,0,0,1" BorderBrush="#DADAD5">
+                        <Border Padding="12" Background="{DynamicResource MatrixPanelBrush}" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource InputBorderBrush}">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -212,7 +213,7 @@
                             <StackPanel>
                                 <TextBlock Text="Chọn mức độ ưu tiên — Esc để bỏ qua, Enter lần nữa để thêm không cần mã"
                                        FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"
-                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
 
                                 <UniformGrid Columns="2" Rows="2">
                                     <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
@@ -253,6 +254,8 @@
                                     <DatePicker SelectedDate="{Binding MatrixPopupDate}" Width="130" Margin="0,0,6,0"/>
                                     <TextBox Text="{Binding MatrixPopupTime, UpdateSourceTrigger=PropertyChanged}"
                                          Width="70" VerticalContentAlignment="Center" Padding="4"
+                                         Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         BorderBrush="{DynamicResource InputBorderBrush}" CaretBrush="{DynamicResource TextPrimaryBrush}"
                                          ToolTip="Giờ dạng hh:mm, để trống nếu không cần"/>
                                 </StackPanel>
                             </StackPanel>
@@ -295,6 +298,9 @@
                                                 <MenuItem Tag="collapse" Header="Collapse" Click="ToggleCollapse_Click"/>
                                                 <MenuItem Tag="rename" Header="Rename group" Click="RenameGroup_Click"/>
                                                 <MenuItem Tag="ungroup" Header="Ungroup (keep tasks)" Click="Ungroup_Click"/>
+                                                <Separator Tag="sepAll"/>
+                                                <MenuItem Tag="collapseAll" Header="Collapse all groups" Click="CollapseAll_Click"/>
+                                                <MenuItem Tag="expandAll" Header="Expand all groups" Click="ExpandAll_Click"/>
                                                 <Separator Tag="sep"/>
                                                 <MenuItem Tag="delete" Header="Delete group" Click="DeleteGroup_Click"/>
                                             </ContextMenu>
@@ -490,8 +496,8 @@
 
                                             <TextBox Grid.Column="1" Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
                                                  VerticalContentAlignment="Center" BorderThickness="0"
-                                                 Background="#20000000" Foreground="{StaticResource TextPrimaryBrush}"
-                                                 CaretBrush="#333333"
+                                                 Background="{DynamicResource EditBoxBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 CaretBrush="{DynamicResource TextPrimaryBrush}"
                                                  FontSize="13" FontWeight="SemiBold"
                                                  IsVisibleChanged="EditTextBox_IsVisibleChanged"
                                                  LostFocus="EditTextBox_LostFocus">
@@ -519,7 +525,7 @@
 
                                             <!-- Nhãn ưu tiên: nền trắng, màu chữ theo mức độ -->
                                             <Border Grid.Column="2" Margin="8,0,0,0" Padding="8,3" CornerRadius="10"
-                                                Background="White" VerticalAlignment="Center">
+                                                Background="{DynamicResource PillBackgroundBrush}" VerticalAlignment="Center">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Style.Triggers>
@@ -585,7 +591,7 @@
                                                         </Style>
                                                     </Button.Style>
                                                     <Grid>
-                                                        <Ellipse Width="20" Height="20" Fill="#FFF3D6" Opacity="0">
+                                                        <Ellipse Width="20" Height="20" Fill="{DynamicResource HoverBellBrush}" Opacity="0">
                                                             <Ellipse.Style>
                                                                 <Style TargetType="Ellipse">
                                                                     <Style.Triggers>
@@ -617,8 +623,9 @@
 
                                                 <Popup IsOpen="{Binding IsReminderPopupOpen}" PlacementTarget="{Binding ElementName=BellButton}"
                                                    Placement="Bottom" StaysOpen="True" AllowsTransparency="True">
-                                                    <Border Background="White" CornerRadius="8" Padding="12"
-                                                        BorderBrush="#CCCCCC" BorderThickness="1">
+                                                    <Border Background="{DynamicResource PopupBackgroundBrush}" CornerRadius="8" Padding="12"
+                                                        BorderBrush="{DynamicResource PopupBorderBrush}" BorderThickness="1"
+                                                        TextElement.Foreground="{DynamicResource TextPrimaryBrush}">
                                                         <Border.Effect>
                                                             <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.25"/>
                                                         </Border.Effect>
@@ -626,6 +633,7 @@
                                                             <Grid Margin="0,0,0,8">
                                                                 <TextBlock Text="Sửa nhắc hẹn" FontWeight="Bold" FontSize="12"/>
                                                                 <Button Content="✕" HorizontalAlignment="Right" Width="18" Height="18" FontSize="10"
+                                                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                                                     Background="Transparent" BorderThickness="0"
                                                                     Command="{Binding DataContext.CloseReminderPopupCommand,
                                                                               RelativeSource={RelativeSource AncestorType=Window}}"
@@ -634,7 +642,9 @@
                                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                                                 <DatePicker SelectedDate="{Binding ReminderPopupDate}" Width="130" Margin="0,0,4,0"/>
                                                                 <TextBox Text="{Binding ReminderPopupTime, UpdateSourceTrigger=PropertyChanged}"
-                                                                     Width="60" VerticalContentAlignment="Center" Padding="4" ToolTip="hh:mm"/>
+                                                                     Width="60" VerticalContentAlignment="Center" Padding="4" ToolTip="hh:mm"
+                                                                     Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                     BorderBrush="{DynamicResource InputBorderBrush}" CaretBrush="{DynamicResource TextPrimaryBrush}"/>
                                                             </StackPanel>
                                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                                 <Button Content="Xóa nhắc" Padding="6,4" Margin="0,0,4,0"
@@ -662,7 +672,7 @@
                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}">
                                                             <Grid>
-                                                                <Ellipse Width="20" Height="20" Fill="#F3E5F5" Opacity="0">
+                                                                <Ellipse Width="20" Height="20" Fill="{DynamicResource HoverBoltBrush}" Opacity="0">
                                                                     <Ellipse.Style>
                                                                         <Style TargetType="Ellipse">
                                                                             <Style.Triggers>
@@ -694,8 +704,9 @@
 
                                                         <Popup IsOpen="{Binding IsPriorityPopupOpen}" PlacementTarget="{Binding ElementName=LightningButton}"
                                                            Placement="Bottom" StaysOpen="True" AllowsTransparency="True">
-                                                            <Border Background="White" CornerRadius="8" Padding="10"
-                                                                BorderBrush="#CCCCCC" BorderThickness="1">
+                                                            <Border Background="{DynamicResource PopupBackgroundBrush}" CornerRadius="8" Padding="10"
+                                                                BorderBrush="{DynamicResource PopupBorderBrush}" BorderThickness="1"
+                                                                TextElement.Foreground="{DynamicResource TextPrimaryBrush}">
                                                                 <Border.Effect>
                                                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.25"/>
                                                                 </Border.Effect>
@@ -722,7 +733,7 @@
                                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="kk"/>
                                                                     </UniformGrid>
-                                                                    <Button Margin="2,4,2,2" Padding="6" Background="#EEEEEE" Foreground="#666666"
+                                                                    <Button Margin="2,4,2,2" Padding="6" Background="{DynamicResource SoftButtonBackgroundBrush}" Foreground="{DynamicResource TextMutedBrush}"
                                                                         BorderThickness="0" FontSize="10" Content="Bỏ mã (---)"
                                                                         Command="{Binding DataContext.SetPriorityQuadrantCommand,
                                                                                   RelativeSource={RelativeSource AncestorType=Window}}"
@@ -736,7 +747,7 @@
                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}">
                                                             <Grid>
-                                                                <Ellipse Width="20" Height="20" Fill="#FFEBEE" Opacity="0">
+                                                                <Ellipse Width="20" Height="20" Fill="{DynamicResource HoverTrashBrush}" Opacity="0">
                                                                     <Ellipse.Style>
                                                                         <Style TargetType="Ellipse">
                                                                             <Style.Triggers>
@@ -786,16 +797,16 @@
 
                         <DockPanel LastChildFill="False" Margin="0,0,0,8">
                             <TextBlock Text="Thống kê task" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"
-                                   VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                   VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <ComboBox ItemsSource="{Binding RangeOptions}" SelectedItem="{Binding SelectedRange}"
                                   Width="90" DockPanel.Dock="Right"/>
                         </DockPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <Rectangle Width="10" Height="10" Fill="#FFB74D" Margin="0,0,4,0"/>
-                            <TextBlock Text="Chưa xong" FontSize="11" Margin="0,0,12,0" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Chưa xong" FontSize="11" Margin="0,0,12,0" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <Rectangle Width="10" Height="10" Fill="#4CAF50" Margin="0,0,4,0"/>
-                            <TextBlock Text="Đã xong" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Đã xong" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
 
                         <ItemsControl ItemsSource="{Binding Stats}">
@@ -814,14 +825,14 @@
                                             </StackPanel>
                                         </Grid>
                                         <TextBlock Text="{Binding Label}" FontSize="10" HorizontalAlignment="Center"
-                                               Margin="0,4,0,0" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                               Margin="0,4,0,0" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
                         <Expander Header="Deleted Task" Margin="0,16,0,0" FontWeight="Bold"
-                              Foreground="{StaticResource TextPrimaryBrush}">
+                              Foreground="{DynamicResource TextPrimaryBrush}">
                             <ItemsControl ItemsSource="{Binding DeletedTasks}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -829,11 +840,25 @@
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0" Text="{Binding Content}"
                                                    TextWrapping="WrapWithOverflow" VerticalAlignment="Center"
-                                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                                   Foreground="{DynamicResource TextMutedBrush}"/>
                                             <Button Grid.Column="1" Width="24" Height="24"
+                                                Background="Transparent" BorderThickness="0"
+                                                ToolTip="Khôi phục task này"
+                                                Command="{Binding DataContext.RestoreTaskCommand,
+                                                          RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}">
+                                                <Viewbox Width="14" Height="14">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#4CAF50"
+                                                          Data="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Button>
+                                            <Button Grid.Column="2" Width="24" Height="24" ToolTip="Xoá vĩnh viễn"
                                                 Background="Transparent" BorderThickness="0"
                                                 Command="{Binding DataContext.PermanentlyDeleteTaskCommand,
                                                           RelativeSource={RelativeSource AncestorType=Window}}"

@@ -155,6 +155,26 @@ public partial class MainViewModel : ObservableObject
         Persist();
     }
 
+    /// <summary>Khôi phục task đã xoá mềm: quay lại danh sách chính (về lại group cũ nếu group đó còn).</summary>
+    [RelayCommand]
+    private void RestoreTask(TaskItem task)
+    {
+        if (!DeletedTasks.Remove(task)) return;
+
+        task.IsDeleted = false;
+        task.DeletedAt = null;
+        task.IsHidden = false;
+        Tasks.Add(task);
+
+        // Group cũ đang thu gọn thì mở ra để thấy task vừa khôi phục.
+        var header = HeaderOf(task);
+        if (header is { IsCollapsed: true })
+            header.IsCollapsed = false;
+
+        ResortTasks();
+        Persist();
+    }
+
     /// <summary>Xóa vĩnh viễn khỏi danh sách Deleted (dùng ở tab Thống kê).</summary>
     [RelayCommand]
     private void PermanentlyDeleteTask(TaskItem task)
@@ -450,6 +470,21 @@ public partial class MainViewModel : ObservableObject
         }
 
         Tasks.Remove(header);
+        ResortTasks();
+        Persist();
+    }
+
+    public bool HasGroups => Tasks.Any(t => t.IsGroupHeader);
+    public bool HasExpandedGroup => Tasks.Any(t => t.IsGroupHeader && !t.IsCollapsed);
+    public bool HasCollapsedGroup => Tasks.Any(t => t.IsGroupHeader && t.IsCollapsed);
+
+    /// <summary>Thu gọn hoặc mở rộng tất cả group cùng lúc.</summary>
+    [RelayCommand]
+    private void SetAllGroupsCollapsed(bool collapsed)
+    {
+        foreach (var header in Tasks.Where(t => t.IsGroupHeader))
+            header.IsCollapsed = collapsed;
+
         ResortTasks();
         Persist();
     }
