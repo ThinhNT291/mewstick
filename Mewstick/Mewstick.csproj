@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>Mewstick</AssemblyName>
+		<RootNamespace>Mewstick</RootNamespace>
+		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+		<ApplicationIcon>Resource\app.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="NewFolder1\**" />
+		<Compile Remove="NewFolder\**" />
+		<EmbeddedResource Remove="NewFolder1\**" />
+		<EmbeddedResource Remove="NewFolder\**" />
+		<None Remove="NewFolder\**" />
+		<Page Remove="NewFolder1\**" />
+		<Page Remove="NewFolder\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Resource\app.ico" />
+		<None Remove="Resource\Fonts\Nunito-Bold.ttf" />
+		<None Remove="Resource\Fonts\Nunito-Italic.ttf" />
+		<None Remove="Resource\Fonts\Nunito-Regular.ttf" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+		<PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Resource\app.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Resource Include="Resource\Fonts\Nunito-Bold.ttf" />
+		<Resource Include="Resource\Fonts\Nunito-Italic.ttf" />
+		<Resource Include="Resource\Fonts\Nunito-Regular.ttf" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,714 @@
+<Window x:Class="Mewstick.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:Mewstick.Converters"
+        xmlns:local="clr-namespace:Mewstick.Controls"
+        Title="Mewstick"
+        Width="380"
+        Height="560"
+        MinWidth="240"
+        MinHeight="320"
+        MaxHeight="800"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        FontFamily="pack://application:,,,/Resources/Fonts/#Nunito"
+        Background="#FAFAF9">
+
+    <Window.Resources>
+        <conv:IndexToColorConverter x:Key="IndexToColorConverter"/>
+        <conv:QuadrantToLabelConverter x:Key="QuadrantToLabelConverter"/>
+        <conv:DateTimeHasValueToBoolConverter x:Key="DateTimeHasValueToBoolConverter"/>
+        <conv:QuadrantToColorConverter x:Key="QuadrantToColorConverter"/>
+        <conv:CompactWidthConverter x:Key="CompactWidthConverter"/>
+
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#2A2A2A"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#9A9A9A"/>
+
+        <Style x:Key="TaskTextStyle" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDone}" Value="True">
+                    <Setter Property="TextDecorations" Value="Strikethrough"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FlatIconButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Checkbox mềm mại: bo góc, không viền cứng, xanh khi tick -->
+        <Style x:Key="SoftCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Box" Width="18" Height="18" CornerRadius="5"
+                                Background="White" BorderThickness="1.5" BorderBrush="#CCCCCC">
+                            <Path x:Name="CheckMark" Data="M3,9 L7,13 L15,4" Stroke="White" StrokeThickness="2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Stretch="Uniform" Margin="3" Visibility="Collapsed"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="#4CAF50"/>
+                                <Setter TargetName="Box" Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tab header kiểu gạch chân, giống ảnh tham khảo -->
+        <Style TargetType="TabItem">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Padding="16,12,16,8" Background="Transparent">
+                            <StackPanel>
+                                <ContentPresenter ContentSource="Header" HorizontalAlignment="Center"/>
+                                <Border x:Name="UnderlineBar" Height="2" Background="Transparent" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="UnderlineBar" Property="Background" Value="#3B6FD6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Foreground" Value="#3B6FD6"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title bar tự vẽ: kéo để di chuyển, có nút Ghim + nút Ẩn -->
+        <Border Grid.Row="0" Height="30" Background="#F0F0EE" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Grid>
+                <TextBlock Text="Mewstick" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <ToggleButton x:Name="PinToggle" Width="30" Height="30" Background="Transparent"
+                                  BorderThickness="0" Click="PinToggle_Click" ToolTip="Ghim luôn trên cùng">
+                        <TextBlock Text="📌" FontSize="12"/>
+                    </ToggleButton>
+                    <Button Width="30" Height="30" Background="Transparent" BorderThickness="0"
+                            Click="HideButton_Click" ToolTip="Ẩn xuống khay hệ thống">
+                        <TextBlock Text="✕" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TabControl x:Name="MainTabControl" Grid.Row="1" BorderThickness="0" Background="Transparent"
+                    TabStripPlacement="Bottom">
+            <TabItem Header="Công việc">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0">
+
+                        <Grid>
+                            <TextBox Text="{Binding NewTaskText, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0" Padding="14,12" FontSize="14" BorderThickness="0,0,0,1"
+                                 BorderBrush="#DADAD5" Background="#F5F5F3"
+                                 Foreground="{StaticResource TextPrimaryBrush}" CaretBrush="#333333"
+                                 VerticalContentAlignment="Center">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Return" Command="{Binding AddTaskCommand}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding CloseMatrixPopupCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <TextBlock Text="Gõ việc &amp; nhấn Enter (Có thể kèm mã -gq, -13:30 2/11)"
+                                   Margin="14,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                   FontStyle="Italic" Foreground="#9A9A95" FontSize="13">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding NewTaskText}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+
+                        <Border Padding="12" Background="#F5F5F0" BorderThickness="0,0,0,1" BorderBrush="#DADAD5">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsHelpOpen}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="Mã ưu tiên (Esc để đóng)" FontSize="11" FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="2" Rows="2" Margin="0,0,0,10">
+                                    <Border Margin="2" Padding="6" Background="#D32F2F" CornerRadius="4">
+                                        <TextBlock Text="-gq   Gấp &amp; Quan trọng" Foreground="White" FontSize="11"/>
+                                    </Border>
+                                    <Border Margin="2" Padding="6" Background="#7B1FA2" CornerRadius="4">
+                                        <TextBlock Text="-kq   Quan trọng" Foreground="White" FontSize="11"/>
+                                    </Border>
+                                    <Border Margin="2" Padding="6" Background="#E68A00" CornerRadius="4">
+                                        <TextBlock Text="-gk   Gấp" Foreground="#2A1E00" FontSize="11"/>
+                                    </Border>
+                                    <Border Margin="2" Padding="6" Background="#1976D2" CornerRadius="4">
+                                        <TextBlock Text="-kk   Còn lại" Foreground="White" FontSize="11"/>
+                                    </Border>
+                                </UniformGrid>
+                                <TextBlock Text="Ngày giờ" FontSize="11" FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3">
+                                <Run Text="-hh:mm" FontWeight="Bold"/><Run Text="   đặt giờ, ngày mặc định là hôm nay" FontStyle="Italic"/>
+                                </TextBlock>
+                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8">
+                                <Run Text="-dd/mm" FontWeight="Bold"/><Run Text="   đặt ngày, giờ mặc định là 06:00" FontStyle="Italic"/>
+                                </TextBlock>
+                                <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextMutedBrush}">
+                                <Run Text="Ví dụ: "/><Run Text="Họp nhóm -gq -14:30 -25/12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                        <Border Padding="12" Background="#F0F0EC" BorderThickness="0,0,0,1" BorderBrush="#DADAD5">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMatrixPopupOpen}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="Chọn mức độ ưu tiên — Esc để bỏ qua, Enter lần nữa để thêm không cần mã"
+                                       FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Foreground="{StaticResource TextMutedBrush}"/>
+
+                                <UniformGrid Columns="2" Rows="2">
+                                    <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
+                                        Background="#D32F2F" Foreground="White" BorderThickness="0"
+                                        Command="{Binding PickQuadrantCommand}" CommandParameter="gq">
+                                        <StackPanel>
+                                            <TextBlock Text="Gấp &amp; Quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
+                                            <TextBlock Text="-gq" FontSize="10" Opacity="0.85" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
+                                        Background="#7B1FA2" Foreground="White" BorderThickness="0"
+                                        Command="{Binding PickQuadrantCommand}" CommandParameter="kq">
+                                        <StackPanel>
+                                            <TextBlock Text="Không gấp &amp; Quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
+                                            <TextBlock Text="-kq" FontSize="10" Opacity="0.85" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
+                                        Background="#E68A00" Foreground="#2A1E00" BorderThickness="0"
+                                        Command="{Binding PickQuadrantCommand}" CommandParameter="gk">
+                                        <StackPanel>
+                                            <TextBlock Text="Gấp &amp; Không quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
+                                            <TextBlock Text="-gk" FontSize="10" Opacity="0.85" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
+                                        Background="#1976D2" Foreground="White" BorderThickness="0"
+                                        Command="{Binding PickQuadrantCommand}" CommandParameter="kk">
+                                        <StackPanel>
+                                            <TextBlock Text="Không gấp &amp; Không quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
+                                            <TextBlock Text="-kk" FontSize="10" Opacity="0.85" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                </UniformGrid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <DatePicker SelectedDate="{Binding MatrixPopupDate}" Width="130" Margin="0,0,6,0"/>
+                                    <TextBox Text="{Binding MatrixPopupTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="70" VerticalContentAlignment="Center" Padding="4"
+                                         ToolTip="Giờ dạng hh:mm, để trống nếu không cần"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <ItemsControl ItemsSource="{Binding Tasks}" AlternationCount="1000" Margin="0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <local:AnimatedStackPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Tag"
+                                        Value="{Binding RelativeSource={RelativeSource Self}, Path=(ItemsControl.AlternationIndex)}"/>
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="RowBorder" CornerRadius="0" Margin="0" Padding="12,10"
+                                        Background="{Binding RelativeSource={RelativeSource AncestorType=ContentPresenter},
+                                                     Path=Tag, Converter={StaticResource IndexToColorConverter}}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDone}" Value="True">
+                                                        <Setter Property="Opacity" Value="0.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Border.Triggers>
+                                            <EventTrigger RoutedEvent="MouseEnter">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="TrashWrapper"
+                                                                     Storyboard.TargetProperty="Width"
+                                                                     To="48" Duration="0:0:0.3">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <CubicEase EasingMode="EaseOut"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                            <EventTrigger RoutedEvent="MouseLeave">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="TrashWrapper"
+                                                                     Storyboard.TargetProperty="Width"
+                                                                     To="0" Duration="0:0:0.3">
+                                                            <DoubleAnimation.EasingFunction>
+                                                                <CubicEase EasingMode="EaseIn"/>
+                                                            </DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Border.Triggers>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsDone, Mode=TwoWay}"
+                                                  Checked="TaskCheckBox_Toggled" Unchecked="TaskCheckBox_Toggled"
+                                                  Style="{StaticResource SoftCheckBoxStyle}"
+                                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding Content}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource TaskTextStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                                <TextBlock.InputBindings>
+                                                    <MouseBinding MouseAction="LeftDoubleClick"
+                                                              Command="{Binding DataContext.BeginEditCommand,
+                                                                        RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                </TextBlock.InputBindings>
+                                            </TextBlock>
+
+                                            <TextBox Grid.Column="1" Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
+                                                 VerticalContentAlignment="Center" BorderThickness="0"
+                                                 Background="#20000000" Foreground="{StaticResource TextPrimaryBrush}"
+                                                 CaretBrush="#333333"
+                                                 FontSize="14" FontWeight="SemiBold"
+                                                 IsVisibleChanged="EditTextBox_IsVisibleChanged"
+                                                 LostFocus="EditTextBox_LostFocus">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Return"
+                                                            Command="{Binding DataContext.CommitEditCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    <KeyBinding Key="Escape"
+                                                            Command="{Binding DataContext.CancelEditCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+
+                                            <!-- Nhãn ưu tiên: nền trắng, màu chữ theo mức độ -->
+                                            <Border Grid.Column="2" Margin="8,0,0,0" Padding="8,3" CornerRadius="10"
+                                                Background="White" VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource CompactWidthConverter}}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Quadrant, Converter={StaticResource QuadrantToLabelConverter}}"
+                                                       FontSize="11" FontWeight="Bold"
+                                                       Foreground="{Binding Quadrant, Converter={StaticResource QuadrantToColorConverter}}"/>
+                                            </Border>
+
+                                            <!-- Chuông: cố định luôn hiện nếu có gán ngày giờ -->
+                                            <StackPanel Grid.Column="3" Margin="8,0,0,0"
+                                                    VerticalAlignment="Center" HorizontalAlignment="Right">
+
+                                                <!-- Chế độ gọn: ngôi sao theo màu mức ưu tiên, luôn hiện -->
+                                                <Viewbox Width="16" Height="16" HorizontalAlignment="Center" Margin="0,0,0,2"
+                                                         ToolTip="{Binding Quadrant, Converter={StaticResource QuadrantToLabelConverter}}">
+                                                    <Viewbox.Style>
+                                                        <Style TargetType="Viewbox">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource CompactWidthConverter}}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Quadrant}" Value="None">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Viewbox.Style>
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Data="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                                                              Fill="{Binding Quadrant, Converter={StaticResource QuadrantToColorConverter}}"/>
+                                                    </Canvas>
+                                                </Viewbox>
+
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button x:Name="BellButton" Margin="0"
+                                                    ToolTip="{Binding DueAt, StringFormat='Nhắc lúc {0:HH:mm dd/MM} — bấm để sửa'}"
+                                                    Command="{Binding DataContext.OpenReminderPopupCommand,
+                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource FlatIconButtonStyle}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DueAt, Converter={StaticResource DateTimeHasValueToBoolConverter}}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <!-- Chế độ gọn: chuông chỉ hiện khi rê chuột vào dòng -->
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource CompactWidthConverter}}" Value="True"/>
+                                                                        <Condition Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="False"/>
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <Grid>
+                                                        <Ellipse Width="20" Height="20" Fill="#FFF3D6" Opacity="0">
+                                                            <Ellipse.Style>
+                                                                <Style TargetType="Ellipse">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                            <Setter Property="Opacity" Value="1"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Ellipse.Style>
+                                                        </Ellipse>
+                                                        <Viewbox Width="14" Height="14">
+                                                            <Canvas Width="24" Height="24">
+                                                                <Path Data="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z">
+                                                                    <Path.Style>
+                                                                        <Style TargetType="Path">
+                                                                            <Setter Property="Fill" Value="#B0B0B0"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                                    <Setter Property="Fill" Value="#FFC107"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Path.Style>
+                                                                </Path>
+                                                            </Canvas>
+                                                        </Viewbox>
+                                                    </Grid>
+                                                </Button>
+
+                                                <Popup IsOpen="{Binding IsReminderPopupOpen}" PlacementTarget="{Binding ElementName=BellButton}"
+                                                   Placement="Bottom" StaysOpen="True" AllowsTransparency="True">
+                                                    <Border Background="White" CornerRadius="8" Padding="12"
+                                                        BorderBrush="#CCCCCC" BorderThickness="1">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.25"/>
+                                                        </Border.Effect>
+                                                        <StackPanel Width="220">
+                                                            <Grid Margin="0,0,0,8">
+                                                                <TextBlock Text="Sửa nhắc hẹn" FontWeight="Bold" FontSize="12"/>
+                                                                <Button Content="✕" HorizontalAlignment="Right" Width="18" Height="18" FontSize="10"
+                                                                    Background="Transparent" BorderThickness="0"
+                                                                    Command="{Binding DataContext.CloseReminderPopupCommand,
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                            </Grid>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                                <DatePicker SelectedDate="{Binding ReminderPopupDate}" Width="130" Margin="0,0,4,0"/>
+                                                                <TextBox Text="{Binding ReminderPopupTime, UpdateSourceTrigger=PropertyChanged}"
+                                                                     Width="60" VerticalContentAlignment="Center" Padding="4" ToolTip="hh:mm"/>
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                                <Button Content="Xóa nhắc" Padding="6,4" Margin="0,0,4,0"
+                                                                    Background="Transparent" BorderThickness="0"
+                                                                    Foreground="#D32F2F" FontSize="11"
+                                                                    Command="{Binding DataContext.ClearReminderCommand,
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                                <Button Content="Lưu" Padding="10,4" Background="#4CAF50" Foreground="White"
+                                                                    BorderThickness="0" FontSize="11"
+                                                                    Command="{Binding DataContext.SaveReminderPopupCommand,
+                                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Popup>
+
+                                                <!-- Nhóm hành động: tia sét + thùng rác, mặc định rộng 0, hover mới trượt mở ra -->
+                                                <Border x:Name="TrashWrapper" Width="0" ClipToBounds="True">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button x:Name="LightningButton" Margin="4,0,0,0" Style="{StaticResource FlatIconButtonStyle}"
+                                                            ToolTip="Sửa mức ưu tiên"
+                                                            Command="{Binding DataContext.OpenPriorityPopupCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}">
+                                                            <Grid>
+                                                                <Ellipse Width="20" Height="20" Fill="#F3E5F5" Opacity="0">
+                                                                    <Ellipse.Style>
+                                                                        <Style TargetType="Ellipse">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                                    <Setter Property="Opacity" Value="1"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Ellipse.Style>
+                                                                </Ellipse>
+                                                                <Viewbox Width="14" Height="14">
+                                                                    <Canvas Width="24" Height="24">
+                                                                        <Path Data="M7 2v11h3v9l7-12h-4l4-8z">
+                                                                            <Path.Style>
+                                                                                <Style TargetType="Path">
+                                                                                    <Setter Property="Fill" Value="#B0B0B0"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                                            <Setter Property="Fill" Value="#AB47BC"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Path.Style>
+                                                                        </Path>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                            </Grid>
+                                                        </Button>
+
+                                                        <Popup IsOpen="{Binding IsPriorityPopupOpen}" PlacementTarget="{Binding ElementName=LightningButton}"
+                                                           Placement="Bottom" StaysOpen="True" AllowsTransparency="True">
+                                                            <Border Background="White" CornerRadius="8" Padding="10"
+                                                                BorderBrush="#CCCCCC" BorderThickness="1">
+                                                                <Border.Effect>
+                                                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.25"/>
+                                                                </Border.Effect>
+                                                                <StackPanel Width="170">
+                                                                    <UniformGrid Columns="2" Rows="2">
+                                                                        <Button Margin="2" Padding="6" Background="#D32F2F" Foreground="White"
+                                                                            BorderThickness="0" FontSize="10" Content="Gấp &amp; QT"
+                                                                            Command="{Binding DataContext.SetPriorityQuadrantCommand,
+                                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                            CommandParameter="gq"/>
+                                                                        <Button Margin="2" Padding="6" Background="#7B1FA2" Foreground="White"
+                                                                            BorderThickness="0" FontSize="10" Content="Quan trọng"
+                                                                            Command="{Binding DataContext.SetPriorityQuadrantCommand,
+                                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                            CommandParameter="kq"/>
+                                                                        <Button Margin="2" Padding="6" Background="#E68A00" Foreground="#2A1E00"
+                                                                            BorderThickness="0" FontSize="10" Content="Gấp"
+                                                                            Command="{Binding DataContext.SetPriorityQuadrantCommand,
+                                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                            CommandParameter="gk"/>
+                                                                        <Button Margin="2" Padding="6" Background="#1976D2" Foreground="White"
+                                                                            BorderThickness="0" FontSize="10" Content="Còn lại"
+                                                                            Command="{Binding DataContext.SetPriorityQuadrantCommand,
+                                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                            CommandParameter="kk"/>
+                                                                    </UniformGrid>
+                                                                    <Button Margin="2,4,2,2" Padding="6" Background="#EEEEEE" Foreground="#666666"
+                                                                        BorderThickness="0" FontSize="10" Content="Bỏ mã (---)"
+                                                                        Command="{Binding DataContext.SetPriorityQuadrantCommand,
+                                                                                  RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="none"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Popup>
+
+                                                        <Button Margin="4,0,0,0" Style="{StaticResource FlatIconButtonStyle}"
+                                                            Command="{Binding DataContext.DeleteTaskCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}">
+                                                            <Grid>
+                                                                <Ellipse Width="20" Height="20" Fill="#FFEBEE" Opacity="0">
+                                                                    <Ellipse.Style>
+                                                                        <Style TargetType="Ellipse">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                                    <Setter Property="Opacity" Value="1"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Ellipse.Style>
+                                                                </Ellipse>
+                                                                <Viewbox Width="14" Height="14">
+                                                                    <Canvas Width="24" Height="24">
+                                                                        <Path Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z">
+                                                                            <Path.Style>
+                                                                                <Style TargetType="Path">
+                                                                                    <Setter Property="Fill" Value="#B0B0B0"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                                                            <Setter Property="Fill" Value="#EF5350"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Path.Style>
+                                                                        </Path>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                            </Grid>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Thống kê">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="12">
+
+                        <DockPanel LastChildFill="False" Margin="0,0,0,8">
+                            <TextBlock Text="Thống kê task" FontWeight="Bold" FontSize="14" DockPanel.Dock="Left"
+                                   VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding RangeOptions}" SelectedItem="{Binding SelectedRange}"
+                                  Width="90" DockPanel.Dock="Right"/>
+                        </DockPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Rectangle Width="10" Height="10" Fill="#FFB74D" Margin="0,0,4,0"/>
+                            <TextBlock Text="Chưa xong" FontSize="11" Margin="0,0,12,0" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Rectangle Width="10" Height="10" Fill="#4CAF50" Margin="0,0,4,0"/>
+                            <TextBlock Text="Đã xong" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </StackPanel>
+
+                        <ItemsControl ItemsSource="{Binding Stats}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="4,0" Width="34">
+                                        <Grid Height="120" VerticalAlignment="Bottom">
+                                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="16">
+                                                <Rectangle Height="{Binding FinishedHeight}" Fill="#4CAF50" RadiusX="2" RadiusY="2"/>
+                                                <Rectangle Height="{Binding UnfinishedHeight}" Fill="#FFB74D" RadiusX="2" RadiusY="2"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <TextBlock Text="{Binding Label}" FontSize="10" HorizontalAlignment="Center"
+                                               Margin="0,4,0,0" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Expander Header="Deleted Task" Margin="0,16,0,0" FontWeight="Bold"
+                              Foreground="{StaticResource TextPrimaryBrush}">
+                            <ItemsControl ItemsSource="{Binding DeletedTasks}" Margin="0,8,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Content}"
+                                                   TextWrapping="WrapWithOverflow" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                            <Button Grid.Column="1" Width="24" Height="24"
+                                                Background="Transparent" BorderThickness="0"
+                                                Command="{Binding DataContext.PermanentlyDeleteTaskCommand,
+                                                          RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}">
+                                                <Viewbox Width="14" Height="14">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#EF5350"
+                                                          Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Expander>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
