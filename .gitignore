@@ -1,0 +1,16 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Installer output
+Installer/Output/
+
+# OS
+Thumbs.db
+.DS_Store
