@@ -215,15 +215,23 @@ public partial class MainWindow : Window
     private static TaskItem? MenuTask(object sender)
     {
         // Đi ngược từ mục menu (kể cả mục con trong submenu) lên ContextMenu gốc.
+        // (Không viết `is not ContextMenu` vì trong lớp Window tên đó bị hiểu là thuộc tính FrameworkElement.ContextMenu.)
+        ContextMenu? menu = null;
         var current = sender as DependencyObject;
-        while (current != null && current is not ContextMenu)
+        while (current != null)
         {
+            if (current is ContextMenu found)
+            {
+                menu = found;
+                break;
+            }
+
             current = current is MenuItem item
                 ? ItemsControl.ItemsControlFromItemContainer(item)
                 : LogicalTreeHelper.GetParent(current);
         }
 
-        return ((current as ContextMenu)?.PlacementTarget as FrameworkElement)?.DataContext as TaskItem;
+        return (menu?.PlacementTarget as FrameworkElement)?.DataContext as TaskItem;
     }
 
     /// <summary>Hiện/ẩn từng mục menu tuỳ dòng đang bấm là task thường, task trong group hay tiêu đề group.</summary>
