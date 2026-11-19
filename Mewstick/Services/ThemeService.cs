@@ -36,6 +36,10 @@ public static class ThemeService
         ["QuickBorderBrush"] = ("#B8B8B3", "#55555D"),
         ["QuickInputBorderBrush"] = ("#8A8A85", "#55555D"),
         ["QuickHintBrush"] = ("#6E6E68", "#9A9AA2"),
+        ["PrioGqBgBrush"] = ("#FFF1F2", "#3A2229"),
+        ["PrioKqBgBrush"] = ("#F5F3FF", "#2E2A45"),
+        ["PrioGkBgBrush"] = ("#FFFBEB", "#3A3220"),
+        ["PrioKkBgBrush"] = ("#EFF6FF", "#1F3047"),
     };
 
     public static void Apply(bool dark)

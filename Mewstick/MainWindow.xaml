@@ -44,6 +44,33 @@
             <Setter Property="BorderThickness" Value="0"/>
         </Style>
 
+        <!-- Nút chọn mức ưu tiên: nền nhạt + thanh màu chỉ thị bên trái -->
+        <Style x:Key="PriorityChipStyle" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="4,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chip" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chip" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chip" Property="Opacity" Value="0.65"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Checkbox mềm mại: bo góc, không viền cứng, xanh khi tick -->
         <Style x:Key="SoftCheckBoxStyle" TargetType="CheckBox">
             <Setter Property="Template">
@@ -173,17 +200,17 @@
                                 <TextBlock Text="Mã ưu tiên (Esc để đóng)" FontSize="11" FontWeight="Bold"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2" Rows="2" Margin="0,0,0,10">
-                                    <Border Margin="2" Padding="6" Background="#D32F2F" CornerRadius="4">
-                                        <TextBlock Text="-gq   Gấp &amp; Quan trọng" Foreground="White" FontSize="11"/>
+                                    <Border Margin="2" Padding="8,6" Background="{DynamicResource PrioGqBgBrush}" BorderBrush="{DynamicResource PrioGqBarBrush}" BorderThickness="4,0,0,0" CornerRadius="6">
+                                        <TextBlock Text="-gq   Gấp &amp; Quan trọng" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"/>
                                     </Border>
-                                    <Border Margin="2" Padding="6" Background="#7B1FA2" CornerRadius="4">
-                                        <TextBlock Text="-kq   Quan trọng" Foreground="White" FontSize="11"/>
+                                    <Border Margin="2" Padding="8,6" Background="{DynamicResource PrioKqBgBrush}" BorderBrush="{DynamicResource PrioKqBarBrush}" BorderThickness="4,0,0,0" CornerRadius="6">
+                                        <TextBlock Text="-kq   Quan trọng" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"/>
                                     </Border>
-                                    <Border Margin="2" Padding="6" Background="#E68A00" CornerRadius="4">
-                                        <TextBlock Text="-gk   Gấp" Foreground="#2A1E00" FontSize="11"/>
+                                    <Border Margin="2" Padding="8,6" Background="{DynamicResource PrioGkBgBrush}" BorderBrush="{DynamicResource PrioGkBarBrush}" BorderThickness="4,0,0,0" CornerRadius="6">
+                                        <TextBlock Text="-gk   Gấp" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"/>
                                     </Border>
-                                    <Border Margin="2" Padding="6" Background="#1976D2" CornerRadius="4">
-                                        <TextBlock Text="-kk   Còn lại" Foreground="White" FontSize="11"/>
+                                    <Border Margin="2" Padding="8,6" Background="{DynamicResource PrioKkBgBrush}" BorderBrush="{DynamicResource PrioKkBarBrush}" BorderThickness="4,0,0,0" CornerRadius="6">
+                                        <TextBlock Text="-kk   Còn lại" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"/>
                                     </Border>
                                 </UniformGrid>
                                 <TextBlock Text="Ngày giờ" FontSize="11" FontWeight="Bold"
@@ -217,7 +244,7 @@
 
                                 <UniformGrid Columns="2" Rows="2">
                                     <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
-                                        Background="#D32F2F" Foreground="White" BorderThickness="0"
+                                        Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioGqBgBrush}" BorderBrush="{DynamicResource PrioGqBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                         Command="{Binding PickQuadrantCommand}" CommandParameter="gq">
                                         <StackPanel>
                                             <TextBlock Text="Gấp &amp; Quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
@@ -225,7 +252,7 @@
                                         </StackPanel>
                                     </Button>
                                     <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
-                                        Background="#7B1FA2" Foreground="White" BorderThickness="0"
+                                        Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioKqBgBrush}" BorderBrush="{DynamicResource PrioKqBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                         Command="{Binding PickQuadrantCommand}" CommandParameter="kq">
                                         <StackPanel>
                                             <TextBlock Text="Không gấp &amp; Quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
@@ -233,7 +260,7 @@
                                         </StackPanel>
                                     </Button>
                                     <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
-                                        Background="#E68A00" Foreground="#2A1E00" BorderThickness="0"
+                                        Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioGkBgBrush}" BorderBrush="{DynamicResource PrioGkBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                         Command="{Binding PickQuadrantCommand}" CommandParameter="gk">
                                         <StackPanel>
                                             <TextBlock Text="Gấp &amp; Không quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
@@ -241,7 +268,7 @@
                                         </StackPanel>
                                     </Button>
                                     <Button Margin="2" Padding="8" HorizontalContentAlignment="Left"
-                                        Background="#1976D2" Foreground="White" BorderThickness="0"
+                                        Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioKkBgBrush}" BorderBrush="{DynamicResource PrioKkBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                         Command="{Binding PickQuadrantCommand}" CommandParameter="kk">
                                         <StackPanel>
                                             <TextBlock Text="Không gấp &amp; Không quan trọng" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
@@ -294,6 +321,7 @@
                                         <Grid.ContextMenu>
                                             <ContextMenu Opened="TaskContextMenu_Opened">
                                                 <MenuItem Tag="create" Header="Create group" Click="CreateGroup_Click"/>
+                                                <MenuItem Tag="addToGroup" Header="Add to group"/>
                                                 <MenuItem Tag="remove" Header="Remove from group" Click="RemoveFromGroup_Click"/>
                                                 <MenuItem Tag="collapse" Header="Collapse" Click="ToggleCollapse_Click"/>
                                                 <MenuItem Tag="rename" Header="Rename group" Click="RenameGroup_Click"/>
@@ -307,7 +335,7 @@
                                         </Grid.ContextMenu>
 
                                         <!-- Dòng tiêu đề group: nền nổi bật, chữ đậm -->
-                                        <Border x:Name="GroupHeaderBorder" Margin="0,6,0,0" Padding="12,9"
+                                        <Border x:Name="GroupHeaderBorder" Margin="0" Padding="12,9"
                                                 BorderThickness="2" Cursor="Hand"
                                                 ToolTip="Bấm để thu gọn/mở rộng — kéo task thả vào đây để đưa vào group — kéo tiêu đề để di chuyển cả group">
                                             <Border.Style>
@@ -712,23 +740,23 @@
                                                                 </Border.Effect>
                                                                 <StackPanel Width="170">
                                                                     <UniformGrid Columns="2" Rows="2">
-                                                                        <Button Margin="2" Padding="6" Background="#D32F2F" Foreground="White"
-                                                                            BorderThickness="0" FontSize="10" Content="Gấp &amp; QT"
+                                                                        <Button Margin="2" Padding="6" Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioGqBgBrush}" BorderBrush="{DynamicResource PrioGqBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                            FontSize="10" Content="Gấp &amp; QT"
                                                                             Command="{Binding DataContext.SetPriorityQuadrantCommand,
                                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="gq"/>
-                                                                        <Button Margin="2" Padding="6" Background="#7B1FA2" Foreground="White"
-                                                                            BorderThickness="0" FontSize="10" Content="Quan trọng"
+                                                                        <Button Margin="2" Padding="6" Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioKqBgBrush}" BorderBrush="{DynamicResource PrioKqBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                            FontSize="10" Content="Quan trọng"
                                                                             Command="{Binding DataContext.SetPriorityQuadrantCommand,
                                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="kq"/>
-                                                                        <Button Margin="2" Padding="6" Background="#E68A00" Foreground="#2A1E00"
-                                                                            BorderThickness="0" FontSize="10" Content="Gấp"
+                                                                        <Button Margin="2" Padding="6" Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioGkBgBrush}" BorderBrush="{DynamicResource PrioGkBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                            FontSize="10" Content="Gấp"
                                                                             Command="{Binding DataContext.SetPriorityQuadrantCommand,
                                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="gk"/>
-                                                                        <Button Margin="2" Padding="6" Background="#1976D2" Foreground="White"
-                                                                            BorderThickness="0" FontSize="10" Content="Còn lại"
+                                                                        <Button Margin="2" Padding="6" Style="{StaticResource PriorityChipStyle}" Background="{DynamicResource PrioKkBgBrush}" BorderBrush="{DynamicResource PrioKkBarBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                            FontSize="10" Content="Còn lại"
                                                                             Command="{Binding DataContext.SetPriorityQuadrantCommand,
                                                                                       RelativeSource={RelativeSource AncestorType=Window}}"
                                                                             CommandParameter="kk"/>
@@ -782,6 +810,21 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
+
+                                        <!-- Đường kẻ mảnh ngăn các group (thay cho khoảng trắng) -->
+                                        <Border Height="1" VerticalAlignment="Top" IsHitTestVisible="False"
+                                                Background="{DynamicResource WindowBackgroundBrush}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsGroupHeader}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
