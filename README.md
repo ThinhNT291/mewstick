@@ -52,6 +52,20 @@ Nút X trên cửa sổ chính chỉ ẩn app (vẫn chạy nền qua tray) — 
 - **Nhớ cửa sổ:** vị trí, kích thước và trạng thái ghim được lưu tại `%AppData%\Mewstick\settings.json`;
   nếu vị trí cũ nằm ngoài màn hình (rút màn hình phụ) thì mở lại giữa màn hình.
 
+## Phím tắt toàn cục
+
+| Phím | Chức năng |
+|---|---|
+| `Ctrl+Alt+N` | Mở popup thêm nhanh |
+| `Ctrl+Alt+M` | Bật/tắt cửa sổ chính |
+| `Win+Ctrl+G` | Ghim / bỏ ghim luôn trên cùng (nếu app khác đã chiếm tổ hợp này thì tự dùng `Ctrl+Alt+G`; tooltip nút 📌 hiện phím đang dùng) |
+
+## Thêm task vào group, mức ưu tiên
+
+- Chuột phải vào task → **Add to group** (task lẻ) hoặc **Move to group** (task đang trong group) → chọn group trong danh sách.
+- Mức ưu tiên hiển thị bằng thanh màu bên trái + nền nhạt cùng tông (đỏ hồng: Gấp & Quan trọng, tím: Quan trọng,
+  hổ phách: Gấp, xanh dương: Còn lại) thay cho các nút màu đặc.
+
 ## Roadmap
 
 - [x] **Giai đoạn 1-7 (MVP, đã dựng ở đây):** khung dự án, lưu JSON, task list CRUD,

@@ -12,10 +12,10 @@ public class QuadrantToColorConverter : IValueConverter
     {
         Color color = value switch
         {
-            EisenhowerQuadrant.UrgentImportant => Color.FromRgb(0xEF, 0x53, 0x50),      // đỏ
-            EisenhowerQuadrant.NotUrgentImportant => Color.FromRgb(0xAB, 0x47, 0xBC),   // tím
-            EisenhowerQuadrant.UrgentNotImportant => Color.FromRgb(0xFF, 0xA7, 0x26),   // vàng
-            EisenhowerQuadrant.NotUrgentNotImportant => Color.FromRgb(0x42, 0xA5, 0xF5),// xanh
+            EisenhowerQuadrant.UrgentImportant => Color.FromRgb(0xF4, 0x3F, 0x5E),      // đỏ hồng
+            EisenhowerQuadrant.NotUrgentImportant => Color.FromRgb(0x8B, 0x5C, 0xF6),   // tím
+            EisenhowerQuadrant.UrgentNotImportant => Color.FromRgb(0xF5, 0x9E, 0x0B),   // hổ phách
+            EisenhowerQuadrant.NotUrgentNotImportant => Color.FromRgb(0x3B, 0x82, 0xF6),// xanh dương
             _ => Color.FromRgb(0x9A, 0x9A, 0x9A)                                        // xám cho "---"
         };
         return new System.Windows.Media.SolidColorBrush(color);

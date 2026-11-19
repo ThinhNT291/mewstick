@@ -170,12 +170,24 @@ public partial class MainWindow : Window
         DragMove();
     }
 
-    private void PinToggle_Click(object sender, RoutedEventArgs e)
+    private void PinToggle_Click(object sender, RoutedEventArgs e) => ApplyPin();
+
+    private void ApplyPin()
     {
         Topmost = PinToggle.IsChecked == true;
         _settings.Current.IsPinned = Topmost;
         _settings.Save();
     }
+
+    /// <summary>Ghim / bỏ ghim luôn trên cùng (dùng cho phím tắt toàn cục).</summary>
+    public void TogglePin()
+    {
+        PinToggle.IsChecked = PinToggle.IsChecked != true;
+        ApplyPin();
+    }
+
+    public void SetPinHotkeyHint(string hotkey) =>
+        PinToggle.ToolTip = $"Ghim luôn trên cùng ({hotkey})";
 
     private void HideButton_Click(object sender, RoutedEventArgs e)
     {
@@ -202,9 +214,16 @@ public partial class MainWindow : Window
     /// <summary>Task của dòng đang mở menu chuột phải (PlacementTarget của ContextMenu).</summary>
     private static TaskItem? MenuTask(object sender)
     {
-        var menu = sender as ContextMenu
-            ?? ItemsControl.ItemsControlFromItemContainer((DependencyObject)sender) as ContextMenu;
-        return (menu?.PlacementTarget as FrameworkElement)?.DataContext as TaskItem;
+        // Đi ngược từ mục menu (kể cả mục con trong submenu) lên ContextMenu gốc.
+        var current = sender as DependencyObject;
+        while (current != null && current is not ContextMenu)
+        {
+            current = current is MenuItem item
+                ? ItemsControl.ItemsControlFromItemContainer(item)
+                : LogicalTreeHelper.GetParent(current);
+        }
+
+        return ((current as ContextMenu)?.PlacementTarget as FrameworkElement)?.DataContext as TaskItem;
     }
 
     /// <summary>Hiện/ẩn từng mục menu tuỳ dòng đang bấm là task thường, task trong group hay tiêu đề group.</summary>
@@ -220,6 +239,7 @@ public partial class MainWindow : Window
                 "create" => !task.IsGroupHeader,
                 "remove" => !task.IsGroupHeader && task.IsGrouped,
                 "collapse" or "rename" or "ungroup" or "delete" or "sep" => task.IsGroupHeader,
+                "addToGroup" => !task.IsGroupHeader && _viewModel.Tasks.Any(t => t.IsGroupHeader && t.Id != task.GroupId),
                 "collapseAll" => _viewModel.HasExpandedGroup,
                 "expandAll" => _viewModel.HasCollapsedGroup,
                 "sepAll" => _viewModel.HasGroups,
@@ -229,12 +249,32 @@ public partial class MainWindow : Window
 
             if (item is MenuItem { Tag: "collapse" } collapseItem)
                 collapseItem.Header = task.IsCollapsed ? "Expand" : "Collapse";
+
+            // Submenu danh sách group: "Add to group" (task lẻ) / "Move to group" (task đã trong group, bỏ group hiện tại)
+            if (item is MenuItem { Tag: "addToGroup" } groupItem && visible)
+            {
+                groupItem.Header = task.IsGrouped ? "Move to group" : "Add to group";
+                groupItem.Items.Clear();
+
+                foreach (var header in _viewModel.Tasks.Where(t => t.IsGroupHeader && t.Id != task.GroupId))
+                {
+                    var entry = new MenuItem { Header = new TextBlock { Text = header.Content }, Tag = header };
+                    entry.Click += MoveToGroup_Click;
+                    groupItem.Items.Add(entry);
+                }
+            }
         }
     }
 
     private void CreateGroup_Click(object sender, RoutedEventArgs e)
     {
         if (MenuTask(sender) is { } task) _viewModel.CreateGroupCommand.Execute(task);
+    }
+
+    private void MoveToGroup_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: TaskItem header } && MenuTask(sender) is { } task)
+            _viewModel.DropTaskOn(task, header);
     }
 
     private void RemoveFromGroup_Click(object sender, RoutedEventArgs e)

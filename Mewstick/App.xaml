@@ -25,5 +25,14 @@
         <SolidColorBrush x:Key="QuickBorderBrush" Color="#B8B8B3"/>
         <SolidColorBrush x:Key="QuickInputBorderBrush" Color="#8A8A85"/>
         <SolidColorBrush x:Key="QuickHintBrush" Color="#6E6E68"/>
+        <!-- Mức ưu tiên: thanh màu bên trái (cố định) + nền nhạt cùng tông (đổi theo giao diện) -->
+        <SolidColorBrush x:Key="PrioGqBgBrush" Color="#FFF1F2"/>
+        <SolidColorBrush x:Key="PrioKqBgBrush" Color="#F5F3FF"/>
+        <SolidColorBrush x:Key="PrioGkBgBrush" Color="#FFFBEB"/>
+        <SolidColorBrush x:Key="PrioKkBgBrush" Color="#EFF6FF"/>
+        <SolidColorBrush x:Key="PrioGqBarBrush" Color="#F43F5E"/>
+        <SolidColorBrush x:Key="PrioKqBarBrush" Color="#8B5CF6"/>
+        <SolidColorBrush x:Key="PrioGkBarBrush" Color="#F59E0B"/>
+        <SolidColorBrush x:Key="PrioKkBarBrush" Color="#3B82F6"/>
     </Application.Resources>
 </Application>

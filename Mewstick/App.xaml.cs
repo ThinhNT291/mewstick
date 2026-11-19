@@ -25,6 +25,7 @@ public partial class App : System.Windows.Application
     private TrayIconService _trayIconService = null!;
     private HotkeyService _quickAddHotkeyService = null!;
     private HotkeyService _mainWindowHotkeyService = null!;
+    private HotkeyService _pinHotkeyService = null!;
     private System.Windows.Threading.DispatcherTimer _reminderTimer = null!;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -95,6 +96,20 @@ public partial class App : System.Windows.Application
         _mainWindowHotkeyService.Register(_mainWindow, HotkeyModifiers.Control | HotkeyModifiers.Alt, vkM);
         _mainWindowHotkeyService.HotkeyPressed += ToggleMainWindow;
 
+        // Win+Ctrl+G: ghim / bỏ ghim cửa sổ. Windows không dùng tổ hợp này; nếu app khác đã chiếm thì dùng Ctrl+Alt+G.
+        var vkG = (uint)KeyInterop.VirtualKeyFromKey(Key.G);
+        _pinHotkeyService = new HotkeyService(0x2335);
+        string pinHotkeyText = "Win+Ctrl+G";
+        if (!_pinHotkeyService.Register(_mainWindow, HotkeyModifiers.Win | HotkeyModifiers.Control, vkG))
+        {
+            _pinHotkeyService.Dispose();
+            _pinHotkeyService = new HotkeyService(0x2335);
+            _pinHotkeyService.Register(_mainWindow, HotkeyModifiers.Control | HotkeyModifiers.Alt, vkG);
+            pinHotkeyText = "Ctrl+Alt+G";
+        }
+        _pinHotkeyService.HotkeyPressed += TogglePinFromHotkey;
+        _mainWindow.SetPinHotkeyHint(pinHotkeyText);
+
         // Cứ 20 giây kiểm tra 1 lần xem có task nào tới giờ hẹn chưa
         _reminderTimer = new System.Windows.Threading.DispatcherTimer
         {
@@ -129,6 +144,19 @@ public partial class App : System.Windows.Application
             _mainViewModel.Persist();
     }
 
+    private void TogglePinFromHotkey()
+    {
+        // Cửa sổ đang ẩn thì hiện lên để người dùng thấy kết quả ghim.
+        if (!_mainWindow.IsVisible)
+        {
+            _mainWindow.Show();
+            _mainWindow.WindowState = WindowState.Normal;
+            _mainWindow.Activate();
+        }
+
+        _mainWindow.TogglePin();
+    }
+
     private void ToggleMainWindow()
     {
         if (_mainWindow.IsVisible)
@@ -150,6 +178,7 @@ public partial class App : System.Windows.Application
         _mainViewModel.Persist();
         _quickAddHotkeyService.Dispose();
         _mainWindowHotkeyService.Dispose();
+        _pinHotkeyService.Dispose();
         _trayIconService.Dispose();
         _mainWindow.Close();
         _singleInstanceMutex?.ReleaseMutex();
